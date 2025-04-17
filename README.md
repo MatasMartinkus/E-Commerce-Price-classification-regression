@@ -142,41 +142,41 @@ Models were evaluated using the following metrics:
 ## Results and Visualizations
 
 ### Price Distribution
-![Price Distribution](Price%20distribution%20scatterplot.png)
+![Price Distribution](Price%20distribution%20scatterplot.png?v=1)
 *Distribution of product prices in the dataset, showing the range and concentration of prices.*
 
 ### Regression Analysis
-![Linear Regression Results](ActualvsPredicted_Prices_Linear_regression.png)
+![Linear Regression Results](ActualvsPredicted_Prices_Linear_regression.png?v=1)
 *Linear regression performance showing actual vs. predicted prices.*
 
-![Random Forest Regression Results](ActualvsPredicted_Prices_Random_Forest.png)
+![Random Forest Regression Results](ActualvsPredicted_Prices_Random_Forest.png?v=1)
 *Random Forest regression performance showing improved accuracy in price prediction.*
 
 ### Classification Models Performance
 
 #### XGBoost Classifier
-![XGBoost Confusion Matrix](xgbc/Confusion_matrix_XGBC.png)
+![XGBoost Confusion Matrix](xgbc/Confusion_matrix_XGBC.png?v=1)
 *Confusion matrix for XGBoost model, showing prediction accuracy across price tiers.*
 
-![XGBoost Learning Curve](xgbc/learning_curve_XGBC.png)
+![XGBoost Learning Curve](xgbc/learning_curve_XGBC.png?v=1)
 *Learning curve showing how the XGBoost model's performance changes with training data size.*
 
 #### Support Vector Machine
-![SVC Confusion Matrix](svc/Confusion_matrix_SVC.png)
+![SVC Confusion Matrix](svc/Confusion_matrix_SVC.png?v=1)
 *Confusion matrix for SVC model, showing prediction accuracy across price tiers.*
 
-![SVC Learning Curve](svc/learning_curve_SVC.png)
+![SVC Learning Curve](svc/learning_curve_SVC.png?v=1)
 *Learning curve showing how the SVC model's performance changes with training data size.*
 
 #### Logistic Regression
-![Logistic Regression Confusion Matrix](logreg/Confusion_matrix_logreg.png)
+![Logistic Regression Confusion Matrix](logreg/Confusion_matrix_logreg.png?v=1)
 *Confusion matrix for Logistic Regression model, showing prediction accuracy across price tiers.*
 
-![Logistic Regression Learning Curve](logreg/learning_curve_logreg.png)
+![Logistic Regression Learning Curve](logreg/learning_curve_logreg.png?v=1)
 *Learning curve showing how the Logistic Regression model's performance changes with training data size.*
 
 ### Model Comparison
-![Model Performance Comparison](Model_Comparison.png)
+![Model Performance Comparison](Model_Comparison.png?v=1)
 *Radar chart comparing all models across multiple performance metrics (Accuracy, Precision, Recall, F1-Score).*
 
 ## Conclusion
