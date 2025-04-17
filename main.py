@@ -14,6 +14,8 @@ from xgboost import XGBClassifier
 from sklearn.svm import SVC
 from sklearn.neural_network import MLPClassifier
 from math import pi
+from imblearn.over_sampling import SMOTE
+from sklearn.neighbors import KernelDensity
 
 MAIN_FEATURES = ["RAM","Procesorius","WIFI","Atmintis","Akumuliatorius","Operacine sistema","Tinklas","Ekranas","Gamintojas"]
 PROCESEORIAI = [
@@ -372,12 +374,33 @@ for column in numerical_columns:
 linear_model = LinearRegression()
 X = df_processed.drop(columns=["price"])
 y = df_processed["price"]
+y_log = np.log1p(y)
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2,random_state=42)
+# Estimate density of price distribution
+kde = KernelDensity(bandwidth=50.0).fit(y.values.reshape(-1, 1))
+density = np.exp(kde.score_samples(y.values.reshape(-1, 1)))
 
-linear_model.fit(X_train, y_train)
+# Calculate weights (inverse of density)
+weights = 1.0 / (density + 1e-10)  # Add small constant to avoid division by zero
+weights = weights / np.mean(weights)  # Normalize weights to mean=1
+
+# Create a Series with same index as original data
+weights_series = pd.Series(weights.flatten(), index=df_processed.index)
+
+# Then use the Series for indexing with train/test split
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+linear_model.fit(X_train, y_train, sample_weight=weights_series.loc[X_train.index])
 y_pred = linear_model.predict(X_test)
 
+# Train model on transformed data
+X_train, X_test, y_train_log, y_test_log = train_test_split(X, y_log, test_size=0.2, random_state=42)
+linear_model.fit(X_train, y_train_log, sample_weight=weights_series.loc[X_train.index])
+
+# Predict and transform back
+y_pred_log = linear_model.predict(X_test)
+y_pred = np.expm1(y_pred_log)  # inverse of log1p
+
+# Evaluate on original scale
 mse = mean_squared_error(y_test, y_pred)
 r2 = r2_score(y_test, y_pred)
 
@@ -432,10 +455,28 @@ df_processed["price_category"] = pd.cut(df_processed["price"], bins=bins, labels
 df_price = df_processed.filter(["price"], axis=1)
 df_processed.drop(columns=["price"], inplace=True)
 
-X = df_processed.drop(columns=["price_category"])  
-y = df_processed["price_category"]  
+price_tier_distribution = df_processed["price_category"].value_counts()
+print("Original class distribution:")
+print(price_tier_distribution)
+plt.figure(figsize=(10, 6))
+price_tier_distribution.plot(kind='bar')
+plt.title('Price Tier Distribution')
+plt.xlabel('Price Tier')
+plt.ylabel('Count')
+plt.savefig("price_tier_distribution.png")
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X = df_processed.drop(columns=["price_category"])  
+y = df_processed["price_category"]
+smote = SMOTE(random_state=42)
+X_balanced, y_balanced = smote.fit_resample(X, y)
+
+print("Class distribution after SMOTE:")
+print(pd.Series(y_balanced).value_counts())
+
+label_encoder = LabelEncoder()
+y_encoded = label_encoder.fit_transform(y_balanced)
+
+X_train, X_test, y_train, y_test = train_test_split(X_balanced, y_encoded, test_size=0.2, random_state=42)
 
 
 grid_search = GridSearchCV(estimator=RandomForestClassifier(random_state=42), param_grid=param_grid, cv=3, scoring='accuracy', n_jobs=-1)
@@ -465,11 +506,6 @@ plt.xlabel("Predicted")
 plt.ylabel("Actual")
 plt.title("Confusion Matrix")
 plt.savefig("Confusion_matrix_RFC.png")
-
-label_encoder = LabelEncoder()
-y_encoded = label_encoder.fit_transform(y)
-
-X_train, X_test, y_train, y_test = train_test_split(X, y_encoded, test_size=0.2, random_state=42)
 
 param_grid = {
     'n_estimators': [50, 100, 200],
@@ -722,12 +758,12 @@ categories = list(metrics_df.index)
 values_logreg = metrics_df['Logistic Regression'].tolist()
 values_svc = metrics_df['SVC'].tolist()
 values_xgb = metrics_df['XGBoost'].tolist()
-values_mlp = metrics_df["MLPClassifier"].tolist()
+# values_mlp = metrics_df["MLPClassifier"].tolist()
 
 values_logreg += values_logreg[:1]
 values_svc += values_svc[:1]
 values_xgb += values_xgb[:1]
-values_mlp += values_mlp[:1]
+# values_mlp += values_mlp[:1]
 categories += categories[:1]  
 
 angles = [n / float(len(categories)) * 2 * pi for n in range(len(categories))]
@@ -740,8 +776,8 @@ ax.plot(angles, values_svc, label='SVC', color='orange')
 ax.fill(angles, values_svc, color='orange', alpha=0.1)
 ax.plot(angles, values_xgb, label='XGBoost', color='green')
 ax.fill(angles, values_xgb, color='green', alpha=0.1)
-ax.plot(angles, values_mlp, label='MLPClassifier', color='red')
-ax.fill(angles, values_mlp, color='red', alpha=0.1)
+# ax.plot(angles, values_mlp, label='MLPClassifier', color='red')
+# ax.fill(angles, values_mlp, color='red', alpha=0.1)
 ax.set_xticks(angles)
 ax.set_xticklabels(categories)
 plt.title('Model Performance Comparison')

@@ -7,7 +7,7 @@ This project develops and evaluates multiple machine learning models to classify
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/yourusername/EComPriceLinearReg.git
+   git clone https://github.com/MatasMartinkus/E-Commerce-Price-classification-regression.git
    cd EComPriceLinearReg
    ```
 
